@@ -128,7 +128,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     const vel = 150;
 
     // Spike death — respawn
-    if (this.y > 172) {
+    if (this.y > 200) {
       this.setPosition(this.spawnX, this.spawnY);
       this.body.setVelocity(0, 0);
       this.jumpingFlag = false;
