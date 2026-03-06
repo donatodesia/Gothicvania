@@ -1,0 +1,36 @@
+Tileset IDs:
+
+Flat Surface:
+
+[(89,90,91,92),(117,118,119,120),(145,146,147,148),(171,171,180,180)]
+
+Ascending Surface:
+
+[(114,115),(142,143),(170,171)]
+
+Descending Surface:
+
+[(124,125),(152,153),(180,181)]
+
+Filling Grass:
+
+[(Top (only grass)), (Ascending[0-1] - Soil[2-4] - Descending[5-6]), (Filling Soil)]:
+
+[
+(null, null, 133,134,135, null, null), 
+(159,160,161,162,163,164,165),  
+(187,188,189,190,191,192,193)
+]
+
+
+Filling Grass with soil Above:
+{
+[Top (soil above grass)
+(null, null, 50,51, null, null),
+
+Ascending - soil - Descending 
+(76,77,78,79,80,81),
+
+Filling Soil
+(104,105,106,107,108,109)]
+}
