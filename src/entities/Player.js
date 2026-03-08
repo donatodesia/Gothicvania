@@ -1,8 +1,20 @@
 import Phaser from 'phaser';
+import {
+  GRAVITY_NORMAL,
+  GRAVITY_FALL,
+  MOVE_SPEED,
+  JUMP_VELOCITY,
+  JUMP_CUT_THRESHOLD,
+  JUMP_CUT_FACTOR,
+  FALL_ANIM_THRESHOLD,
+  DROP_THROUGH_MS,
+  DROP_THROUGH_NUDGE,
+  DEATH_Y,
+} from '../constants.js';
 
-const FRAME_W = 100;
-const BODY_W = 22;
-const BODY_H = 39;
+const FRAME_W      = 100;
+const BODY_W       = 22;
+const BODY_H       = 39;
 const BODY_OFFSET_X = 41;
 const BODY_OFFSET_Y = 19;
 
@@ -23,7 +35,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     this.body.setSize(BODY_W, BODY_H);
     this.body.setOffset(BODY_OFFSET_X, BODY_OFFSET_Y);
-    this.body.setGravityY(800);
+    this.body.setGravityY(GRAVITY_NORMAL);
 
     // --- Animations ---
     scene.anims.create({
@@ -125,10 +137,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
   update() {
     const onFloor = this.body.onFloor();
-    const vel = 150;
 
     // Spike death — respawn
-    if (this.y > 200) {
+    if (this.y > DEATH_Y) {
       this.setPosition(this.spawnX, this.spawnY);
       this.body.setVelocity(0, 0);
       this.jumpingFlag = false;
@@ -148,29 +159,29 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     // --- Fall faster for heavier feel ---
     if (!onFloor && this.body.velocity.y > 0) {
-      this.body.setGravityY(1200);
+      this.body.setGravityY(GRAVITY_FALL);
     } else {
-      this.body.setGravityY(800);
+      this.body.setGravityY(GRAVITY_NORMAL);
     }
 
     // --- Variable jump height: release early = short hop ---
-    if (this.jumpingFlag && !this.cursors.up.isDown && this.body.velocity.y < -50) {
-      this.body.setVelocityY(this.body.velocity.y * 0.5);
+    if (this.jumpingFlag && !this.cursors.up.isDown && this.body.velocity.y < JUMP_CUT_THRESHOLD) {
+      this.body.setVelocityY(this.body.velocity.y * JUMP_CUT_FACTOR);
     }
 
     // --- Falling animation ---
-    if (this.jumpingFlag && this.body.velocity.y > 10) {
+    if (this.jumpingFlag && this.body.velocity.y > FALL_ANIM_THRESHOLD) {
       this.play('fall', true);
     }
 
     // --- Ground movement (only when not jumping) ---
     if (!this.jumpingFlag) {
       if (this.cursors.left.isDown) {
-        this.body.setVelocityX(-vel);
+        this.body.setVelocityX(-MOVE_SPEED);
         this.play('run', true);
         this.faceLeft();
       } else if (this.cursors.right.isDown) {
-        this.body.setVelocityX(vel);
+        this.body.setVelocityX(MOVE_SPEED);
         this.play('run', true);
         this.faceRight();
       } else {
@@ -184,10 +195,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     } else {
       // Allow air control while jumping
       if (this.cursors.left.isDown) {
-        this.body.setVelocityX(-vel);
+        this.body.setVelocityX(-MOVE_SPEED);
         this.faceLeft();
       } else if (this.cursors.right.isDown) {
-        this.body.setVelocityX(vel);
+        this.body.setVelocityX(MOVE_SPEED);
         this.faceRight();
       } else {
         this.body.setVelocityX(0);
@@ -197,15 +208,15 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     // --- Drop through one-way platforms ---
     if (this.cursors.down.isDown && Phaser.Input.Keyboard.JustDown(this.keySpace) && onFloor) {
       this.droppingThrough = true;
-      this.y += 2;
-      this.scene.time.delayedCall(200, () => {
+      this.y += DROP_THROUGH_NUDGE;
+      this.scene.time.delayedCall(DROP_THROUGH_MS, () => {
         this.droppingThrough = false;
       });
     }
 
     // --- Jump ---
     if (Phaser.Input.Keyboard.JustDown(this.cursors.up) && onFloor) {
-      this.body.setVelocityY(-290);
+      this.body.setVelocityY(JUMP_VELOCITY);
       this.play('jump', true);
       this.jumpingFlag = true;
     }

@@ -22,46 +22,29 @@
  *      this.chunkGen.bootstrap(); // fills the first chunk immediately
  *
  * 3. In GameScene.update(), add one line:
- *      const playerCol = Math.floor(this.player.body.center.x / 16);
+ *      const playerCol = Math.floor(this.player.body.center.x / TILE_SIZE);
  *      this.chunkGen.advanceIfNeeded(playerCol);
  *
  * ── CONSTRUCTOR OPTIONS ─────────────────────────────────────────────────────
- *   chunkSize  (default 300) — columns generated per advance
- *   lookahead  (default 50)  — cols ahead of player that trigger the next chunk
+ *   chunkSize  (default CHUNK_SIZE)      — columns generated per advance
+ *   lookahead  (default CHUNK_LOOKAHEAD) — cols ahead of player that trigger the next chunk
  */
-
-// ── Tile data (mirrors GameScene.placeStep constants) ───────────────────────
-const GROUND_ROW = 12;
-
-const ASC      = [[114, 115], [142, 143], [170, 171]];
-const DESC     = [[124, 125], [152, 153], [180, 181]];
-const FLAT     = [[117,118,119,120], [145,146,147,148], [171,171,180,180]];
-const FLAT_CAP = [89, 90, 91, 92];
-
-// ── Prop pools (mirror GameScene.generateBackground) ────────────────────────
-const BACK_POOL = [
-  'tree-1', 'tree-2', 'tree-3',
-  'statue',
-  'bush-large',
-  'stone-1', 'stone-1',
-  'stone-2', 'stone-2',
-  'stone-3', 'stone-4',
-];
-
-const FRONT_POOL = [
-  'tree-1', 'tree-2',
-  'statue',
-  'bush-large',
-  'stone-1', 'stone-1',
-  'stone-2', 'stone-2',
-  'stone-3', 'stone-4',
-];
-
-const GROUND_Y = 11 * 16; // 176px — top edge of ground tiles
-
-// ── Depth values (match GameScene DEPTH constants) ───────────────────────────
-const DEPTH_PROPS_BACK  = 1;
-const DEPTH_PROPS_FRONT = 4;
+import {
+  TILE_SIZE,
+  GROUND_ROW,
+  TILE_SOLID,
+  TILE_ONE_WAY,
+  ASC,
+  DESC,
+  FLAT,
+  FLAT_CAP,
+  BACK_POOL,
+  FRONT_POOL,
+  GROUND_Y,
+  DEPTH,
+  CHUNK_SIZE,
+  CHUNK_LOOKAHEAD,
+} from '../constants.js';
 
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -69,10 +52,10 @@ export default class ChunkGenerator {
   /**
    * @param {Phaser.Scene} scene
    * @param {{ mainLayer, collisionLayer, backLayer, terrainHeight, mapCols }} opts
-   * @param {number} [chunkSize=300]
-   * @param {number} [lookahead=50]
+   * @param {number} [chunkSize]
+   * @param {number} [lookahead]
    */
-  constructor(scene, { mainLayer, collisionLayer, backLayer, terrainHeight, mapCols }, chunkSize = 300, lookahead = 50) {
+  constructor(scene, { mainLayer, collisionLayer, backLayer, terrainHeight, mapCols }, chunkSize = CHUNK_SIZE, lookahead = CHUNK_LOOKAHEAD) {
     this.scene          = scene;
     this.mainLayer      = mainLayer;
     this.collisionLayer = collisionLayer;
@@ -101,7 +84,7 @@ export default class ChunkGenerator {
   /**
    * Call every frame in update(). Triggers the next chunk when the player
    * is within `lookahead` columns of the current frontier.
-   * @param {number} playerCol  Math.floor(player.body.center.x / 16)
+   * @param {number} playerCol  Math.floor(player.body.center.x / TILE_SIZE)
    */
   advanceIfNeeded(playerCol) {
     if (this.generatedUpTo >= this.mapCols) return;
@@ -128,8 +111,8 @@ export default class ChunkGenerator {
       this.mainLayer.putTileAt(FLAT_CAP[ci], c, 11);
       this.mainLayer.putTileAt(FLAT[0][ci],  c, 12);
       this.mainLayer.putTileAt(FLAT[1][ci],  c, 13);
-      this.collisionLayer.putTileAt(1, c, 12).setCollision(true, true, true, true);
-      this.collisionLayer.putTileAt(1, c, 13).setCollision(true, true, true, true);
+      this.collisionLayer.putTileAt(TILE_SOLID, c, 12).setCollision(true, true, true, true);
+      this.collisionLayer.putTileAt(TILE_SOLID, c, 13).setCollision(true, true, true, true);
     }
   }
 
@@ -166,19 +149,19 @@ export default class ChunkGenerator {
       const flat   = Phaser.Math.Between(4, 10);
 
       for (let i = 0; i < height; i++) {
-        this._placeStep(col + i * 2,     i + 1, 'ascending',  0, this.backLayer);
-        this._placeStep(col + i * 2 + 1, i + 1, 'ascending',  1, this.backLayer);
+        this._placeVisual(col + i * 2,     i + 1, 'ascending',  0, this.backLayer);
+        this._placeVisual(col + i * 2 + 1, i + 1, 'ascending',  1, this.backLayer);
       }
 
       const flatStart = col + height * 2;
       for (let i = 0; i < flat; i++) {
-        this._placeStep(flatStart + i, height, 'flat', i, this.backLayer);
+        this._placeVisual(flatStart + i, height, 'flat', i, this.backLayer);
       }
 
       const descStart = flatStart + flat;
       for (let i = 0; i < height; i++) {
-        this._placeStep(descStart + i * 2,     height - i, 'descending', 0, this.backLayer);
-        this._placeStep(descStart + i * 2 + 1, height - i, 'descending', 1, this.backLayer);
+        this._placeVisual(descStart + i * 2,     height - i, 'descending', 0, this.backLayer);
+        this._placeVisual(descStart + i * 2 + 1, height - i, 'descending', 1, this.backLayer);
       }
 
       this.nextBgSlopeCol = col + height * 4 + flat + Phaser.Math.Between(8, 25);
@@ -186,13 +169,13 @@ export default class ChunkGenerator {
   }
 
   _generateProps(toCol) {
-    const toX = toCol * 16;
+    const toX = toCol * TILE_SIZE;
 
     while (this.nextBackPropX < toX) {
       const key = BACK_POOL[Phaser.Math.Between(0, BACK_POOL.length - 1)];
       const w   = this.scene.textures.getFrame(key).realWidth;
       this.scene.add.image(this.nextBackPropX + w / 2, GROUND_Y + 20, key)
-        .setOrigin(0.5, 1).setDepth(DEPTH_PROPS_BACK);
+        .setOrigin(0.5, 1).setDepth(DEPTH.PROPS_BACK);
       this.nextBackPropX += w + Phaser.Math.Between(20, 80);
     }
 
@@ -200,39 +183,52 @@ export default class ChunkGenerator {
       const key = FRONT_POOL[Phaser.Math.Between(0, FRONT_POOL.length - 1)];
       const w   = this.scene.textures.getFrame(key).realWidth;
       this.scene.add.image(this.nextFrontPropX + w / 2, GROUND_Y + 35, key)
-        .setOrigin(0.5, 1).setDepth(DEPTH_PROPS_FRONT);
+        .setOrigin(0.5, 1).setDepth(DEPTH.PROPS_FRONT);
       this.nextFrontPropX += w + Phaser.Math.Between(20, 80);
     }
   }
 
-  _placeStep(col, colHeight, type, tileCol, layer) {
+  /**
+   * Orchestrator for a main-layer column: places visual tiles, collision tile,
+   * and updates terrain height. Use _placeVisual directly for background layers.
+   */
+  _placeStep(col, colHeight, type, tileCol) {
     if (col < 0 || col >= this.mapCols) return;
+    const surfaceRow = GROUND_ROW - colHeight;
+    this._placeVisual(col, colHeight, type, tileCol, this.mainLayer);
+    this._placeCollision(col, surfaceRow);
+    this._updateHeight(col, surfaceRow);
+  }
 
-    const targetLayer = layer || this.mainLayer;
-    const surfaceRow  = GROUND_ROW - colHeight;
-
+  /** Place visual tiles for one column on the given layer. No physics side-effects. */
+  _placeVisual(col, colHeight, type, tileCol, layer) {
+    if (col < 0 || col >= this.mapCols) return;
+    const surfaceRow = GROUND_ROW - colHeight;
     if (type === 'flat') {
-      targetLayer.putTileAt(FLAT_CAP[tileCol % 4], col, surfaceRow - 1);
+      layer.putTileAt(FLAT_CAP[tileCol % 4], col, surfaceRow - 1);
       for (let r = surfaceRow; r < GROUND_ROW; r++) {
         const idx = Math.min(r - surfaceRow, FLAT.length - 1);
-        targetLayer.putTileAt(FLAT[idx][tileCol % 4], col, r);
+        layer.putTileAt(FLAT[idx][tileCol % 4], col, r);
       }
     } else {
       const tiles = type === 'ascending' ? ASC : DESC;
       for (let r = surfaceRow; r < GROUND_ROW; r++) {
         const idx = Math.min(r - surfaceRow, tiles.length - 1);
-        targetLayer.putTileAt(tiles[idx][tileCol % 2], col, r);
+        layer.putTileAt(tiles[idx][tileCol % 2], col, r);
       }
     }
+  }
 
-    if (targetLayer === this.mainLayer) {
-      if (surfaceRow < this.terrainHeight[col]) {
-        this.terrainHeight[col] = surfaceRow;
-      }
-      if (surfaceRow < GROUND_ROW) {
-        const tile = this.collisionLayer.putTileAt(2, col, surfaceRow);
-        tile.setCollision(false, false, true, false);
-      }
-    }
+  /** Place a one-way collision tile at surfaceRow for col. No visual side-effects. */
+  _placeCollision(col, surfaceRow) {
+    if (col < 0 || col >= this.mapCols) return;
+    if (surfaceRow >= GROUND_ROW) return;
+    const tile = this.collisionLayer.putTileAt(TILE_ONE_WAY, col, surfaceRow);
+    tile.setCollision(false, false, true, false);
+  }
+
+  /** Update the terrain height map for col. No layer side-effects. */
+  _updateHeight(col, surfaceRow) {
+    this.terrainHeight.setMin(col, surfaceRow);
   }
 }

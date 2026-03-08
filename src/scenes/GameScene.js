@@ -1,21 +1,18 @@
 import Phaser from 'phaser';
 import Player from '../entities/Player.js';
-import StaticGenerator from '../utils/StaticGenerator.js';
-import ChunkGenerator  from '../utils/ChunkGenerator.js';
-
-// Toggle terrain generation mode:
-//   false → StaticGenerator: whole map generated at scene start
-//   true  → ChunkGenerator:  generated on demand as the player advances
-const USE_CHUNKS = true;
-const Generator  = USE_CHUNKS ? ChunkGenerator : StaticGenerator;
-
-const DEPTH = {
-  SKY:         0,
-  PROPS_BACK:  1,
-  GROUND:      2,
-  PLAYER:      3,
-  PROPS_FRONT: 4,
-};
+import ChunkGenerator from '../utils/ChunkGenerator.js';
+import TerrainMap from '../utils/TerrainMap.js';
+import {
+  TILE_SIZE,
+  GROUND_ROW,
+  CAP_ROW,
+  TILE_SOLID,
+  DEPTH,
+  SPAWN_COL,
+  SPAWN_ROW,
+  PARALLAX_MOUNTAINS,
+  PARALLAX_GRAVEYARD,
+} from '../constants.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -38,22 +35,22 @@ export default class GameScene extends Phaser.Scene {
     this.collisionLayer = map.createLayer('Collisions Layer', [tileset]);
     this.collisionLayer.setVisible(false);
 
-    this.collisionLayer.setCollision(1);
+    this.collisionLayer.setCollision(TILE_SOLID);
 
-    // Rows 0–11: disable any solid (index 1) tile collision.
-    // Row 11 is the decorative grass cap; rows 0–10 are sky and may contain
+    // Rows 0–CAP_ROW: disable any solid tile collision.
+    // CAP_ROW is the decorative grass cap; rows 0–(CAP_ROW-1) are sky and may contain
     // map-boundary wall tiles (originally the left/right edge of the 300-col map)
     // that must not block the player now that the map has been extended.
     for (let c = 0; c < this.mapCols; c++) {
-      for (let r = 0; r <= 11; r++) {
+      for (let r = 0; r <= CAP_ROW; r++) {
         const t = this.collisionLayer.getTileAt(c, r);
-        if (t && t.index === 1) t.setCollision(false, false, false, false);
+        if (t && t.index === TILE_SOLID) t.setCollision(false, false, false, false);
       }
     }
 
     // --- Procedural terrain + props ---
-    this.terrainHeight = new Array(this.mapCols).fill(12); // ground surface row per column
-    this.generator = new Generator(this, {
+    this.terrainHeight = new TerrainMap(this.mapCols);
+    this.generator = new ChunkGenerator(this, {
       mainLayer:      this.mainLayer,
       collisionLayer: this.collisionLayer,
       backLayer:      this.backLayer,
@@ -63,18 +60,21 @@ export default class GameScene extends Phaser.Scene {
     this.generator.bootstrap();
 
     // --- Player ---
-    this.player = new Player(this, 6 * 16, 9 * 16);
+    this.player = new Player(this, SPAWN_COL * TILE_SIZE, SPAWN_ROW * TILE_SIZE);
     this.add.existing(this.player);
     this.player.setDepth(DEPTH.PLAYER);
 
     this.physics.add.collider(this.player, this.collisionLayer, null, (player, tile) => {
-      if (tile.index === 1) return true; // solid ground always collides
-      // Slope tile (index 2): skip collision when dropping through
+      if (tile.index === TILE_SOLID) return true; // solid ground always collides
+      // One-way tile: skip collision when dropping through
       if (player.droppingThrough) return false;
-      // One-way: only collide when player is above tile and falling/standing
+      // One-way: only collide when player approaches from above.
+      // Tolerance is derived from actual body movement this frame so fast falls
+      // don't clip through the platform regardless of frame rate.
       const playerBottom = player.body.bottom;
-      const tileTop = tile.pixelY;
-      return playerBottom <= tileTop + 6 && player.body.velocity.y >= 0;
+      const tileTop      = tile.pixelY;
+      const tolerance    = Math.max(Math.abs(player.body.deltaY()), 1);
+      return playerBottom <= tileTop + tolerance && player.body.velocity.y >= 0;
     });
 
     // --- Camera ---
@@ -93,33 +93,36 @@ export default class GameScene extends Phaser.Scene {
 
   update() {
     this.player.update();
-    this.generator.advanceIfNeeded(Math.floor(this.player.body.center.x / 16));
+    this.generator.advanceIfNeeded(Math.floor(this.player.body.center.x / TILE_SIZE));
 
-    // Slope step-up / step-down: only when already on elevated terrain (not ground)
+    // Step-up: when walking on elevated terrain toward a higher surface, apply
+    // a vertical velocity so the player rides the slope smoothly.
+    // Step-down is intentionally omitted — gravity handles descending naturally,
+    // and teleporting the player downward conflicts with it causing jitter.
     if (this.player.body.onFloor() && this.player.body.velocity.x !== 0 && !this.player.droppingThrough) {
-      const currentCol = Math.floor(this.player.body.center.x / 16);
-      const currentTerrain = currentCol >= 0 && currentCol < this.mapCols ? this.terrainHeight[currentCol] : 12;
-      const onElevated = currentTerrain < 12 && this.player.body.bottom <= currentTerrain * 16 + 4;
+      const currentCol     = Math.floor(this.player.body.center.x / TILE_SIZE);
+      const currentTerrain = this.terrainHeight.get(currentCol);
+      const onElevated     = currentTerrain < GROUND_ROW && this.player.body.bottom <= currentTerrain * TILE_SIZE + 4;
 
       if (onElevated) {
-        const dir = this.player.body.velocity.x > 0 ? 1 : -1;
+        const dir    = this.player.body.velocity.x > 0 ? 1 : -1;
         const checkX = dir > 0 ? this.player.body.right + 2 : this.player.body.left - 2;
-        const nextCol = Math.floor(checkX / 16);
+        const nextCol  = Math.floor(checkX / TILE_SIZE);
+        const targetY  = this.terrainHeight.get(nextCol) * TILE_SIZE;
+        const diff     = targetY - this.player.body.bottom;
 
-        if (nextCol >= 0 && nextCol < this.mapCols) {
-          const targetY = this.terrainHeight[nextCol] * 16;
-          const diff = targetY - this.player.body.bottom;
-
-          if (diff !== 0 && Math.abs(diff) <= 16) {
-            this.player.body.position.y = targetY - this.player.body.height;
-            this.player.body.velocity.y = 0;
-          }
+        // Only step up (diff < 0 = next surface is above current feet), max 1 tile.
+        // Position assignment is intentional: one-way tiles don't block upward
+        // movement, so a velocity-based push would send the player through them.
+        if (diff < 0 && Math.abs(diff) <= TILE_SIZE) {
+          this.player.body.position.y = targetY - this.player.body.height;
+          this.player.body.velocity.y = 0;
         }
       }
     }
 
     const camX = this.cameras.main.scrollX;
-    this.bgMountains.tilePositionX = camX * 0.07;
-    this.bgGraveyard.tilePositionX = camX * 0.25;
+    this.bgMountains.tilePositionX = camX * PARALLAX_MOUNTAINS;
+    this.bgGraveyard.tilePositionX = camX * PARALLAX_GRAVEYARD;
   }
 }
