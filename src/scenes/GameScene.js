@@ -1,90 +1,95 @@
 import Phaser from 'phaser';
+import Warrior from '../entities/Warrior.js';
+import Vampire from '../entities/Vampire.js';
+import Archer from '../entities/Archer.js';
+import Barbarian from '../entities/Barbarian.js';
+import Knight from '../entities/Knight.js';
+import King from '../entities/King.js';
+import Necromancer from '../entities/Necromancer.js';
+import Paladin from '../entities/Paladin.js';
+import Goblin from '../entities/Goblin.js';
+import Skeleton from '../entities/Skeleton.js';
+import Mushroom from '../entities/Mushroom.js';
+import FlyingEye from '../entities/FlyingEye.js';
+import Rat from '../entities/Rat.js';
 import Player from '../entities/Player.js';
-import ChunkGenerator from '../utils/ChunkGenerator.js';
-import TerrainMap from '../utils/TerrainMap.js';
-import {
-  TILE_SIZE,
-  GROUND_ROW,
-  CAP_ROW,
-  TILE_SOLID,
-  DEPTH,
-  SPAWN_COL,
-  SPAWN_ROW,
-  PARALLAX_MOUNTAINS,
-  PARALLAX_GRAVEYARD,
-} from '../constants.js';
+import CemeteryLevel from '../levels/CemeteryLevel.js';
+import TownLevel from '../levels/TownLevel.js';
+import { TILE_SIZE, TILE_SOLID, DEPTH } from '../constants.js';
+
+const LEVELS = {
+  cemetery: CemeteryLevel,
+  town:     TownLevel,
+};
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
     super('GameScene');
   }
 
+  init(data = {}) {
+    this.LevelClass = LEVELS[data.level] ?? TownLevel;
+  }
+
   create() {
-    // --- Parallax backgrounds (DEPTH.SKY) ---
-    this.bgMoon = this.add.tileSprite(0, 0, 384, 224, 'bg-moon').setOrigin(0).setScrollFactor(0);
-    this.bgMountains = this.add.tileSprite(0, 0, 384, 224, 'bg-mountains').setOrigin(0).setScrollFactor(0);
-    this.bgGraveyard = this.add.tileSprite(0, 0, 384, 224, 'bg-graveyard').setOrigin(0).setScrollFactor(0);
+    // --- Level ---
+    this.level = new this.LevelClass(this);
+    this.level.create();
 
-    // --- Tilemap ---
-    const map = this.make.tilemap({ key: 'map' });
-    this.mapCols = map.width;
-    const tileset = map.addTilesetImage('tileset', 'tileset');
+    // --- Characters ---
+    const { x: spawnX, y: spawnY } = this.level.spawnPoint;
 
-    this.backLayer  = map.createLayer('Back Layer',       [tileset]).setDepth(DEPTH.PROPS_BACK);
-    this.mainLayer  = map.createLayer('Main Layer',       [tileset]).setDepth(DEPTH.GROUND);
-    this.collisionLayer = map.createLayer('Collisions Layer', [tileset]);
-    this.collisionLayer.setVisible(false);
+    const CharClasses = [
+      Warrior, Vampire, Archer, Barbarian, Knight, King,
+      Necromancer, Paladin, Goblin, Skeleton, Mushroom, FlyingEye, Rat,
+    ];
 
-    this.collisionLayer.setCollision(TILE_SOLID);
-
-    // Rows 0–CAP_ROW: disable any solid tile collision.
-    // CAP_ROW is the decorative grass cap; rows 0–(CAP_ROW-1) are sky and may contain
-    // map-boundary wall tiles (originally the left/right edge of the 300-col map)
-    // that must not block the player now that the map has been extended.
-    for (let c = 0; c < this.mapCols; c++) {
-      for (let r = 0; r <= CAP_ROW; r++) {
-        const t = this.collisionLayer.getTileAt(c, r);
-        if (t && t.index === TILE_SOLID) t.setCollision(false, false, false, false);
-      }
+    this.characters = [];
+    for (let i = 0; i < CharClasses.length; i++) {
+      const char = new CharClasses[i](this, spawnX, spawnY);
+      this.add.existing(char);
+      char.setDepth(DEPTH.PLAYER);
+      this.characters.push(char);
     }
 
-    // --- Procedural terrain + props ---
-    this.terrainHeight = new TerrainMap(this.mapCols);
-    this.generator = new ChunkGenerator(this, {
-      mainLayer:      this.mainLayer,
-      collisionLayer: this.collisionLayer,
-      backLayer:      this.backLayer,
-      terrainHeight:  this.terrainHeight,
-      mapCols:        this.mapCols,
+    // Only the first character is active; the rest wait off-screen
+    for (let i = 1; i < this.characters.length; i++) {
+      this.characters[i].setVisible(false);
+      this.characters[i].body.enable = false;
+    }
+
+    this.activeIndex = 0;
+
+    // --- Player controller ---
+    this.player = new Player(this, this.characters[0]);
+
+    // --- One-way collision callback ---
+    const oneWayCallback = (sprite, tile) => {
+      if (tile.index === TILE_SOLID) return true;
+      if (sprite.droppingThrough) return false;
+      const bottom    = sprite.body.bottom;
+      const tileTop   = tile.pixelY;
+      const tolerance = Math.max(Math.abs(sprite.body.deltaY()), 1);
+      return bottom <= tileTop + tolerance && sprite.body.velocity.y >= 0;
+    };
+
+    for (const char of this.characters) {
+      this.physics.add.collider(char, this.level.collisionLayer, null, oneWayCallback);
+    }
+
+    // --- Camera & world bounds ---
+    this.cameras.main.setBounds(0, 0, this.level.mapWidthPx, this.level.mapHeightPx);
+    this.cameras.main.startFollow(this.characters[0], true);
+    this.physics.world.setBounds(0, 0, this.level.mapWidthPx, this.level.mapHeightPx);
+
+    // --- Switch character on Tab ---
+    this.input.keyboard.on('keydown-TAB', (event) => {
+      event.preventDefault();
+      this.activeIndex = (this.activeIndex + 1) % this.characters.length;
+      this.player.switchCharacter(this.characters[this.activeIndex]);
     });
-    this.generator.bootstrap();
 
-    // --- Player ---
-    this.player = new Player(this, SPAWN_COL * TILE_SIZE, SPAWN_ROW * TILE_SIZE);
-    this.add.existing(this.player);
-    this.player.setDepth(DEPTH.PLAYER);
-
-    this.physics.add.collider(this.player, this.collisionLayer, null, (player, tile) => {
-      if (tile.index === TILE_SOLID) return true; // solid ground always collides
-      // One-way tile: skip collision when dropping through
-      if (player.droppingThrough) return false;
-      // One-way: only collide when player approaches from above.
-      // Tolerance is derived from actual body movement this frame so fast falls
-      // don't clip through the platform regardless of frame rate.
-      const playerBottom = player.body.bottom;
-      const tileTop      = tile.pixelY;
-      const tolerance    = Math.max(Math.abs(player.body.deltaY()), 1);
-      return playerBottom <= tileTop + tolerance && player.body.velocity.y >= 0;
-    });
-
-    // --- Camera ---
-    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    this.cameras.main.startFollow(this.player, true);
-
-    // --- World bounds ---
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
-    // --- Pause menu on ESC ---
+    // --- Pause on ESC ---
     this.input.keyboard.on('keydown-ESC', () => {
       this.scene.pause();
       this.scene.launch('PauseScene');
@@ -93,36 +98,27 @@ export default class GameScene extends Phaser.Scene {
 
   update() {
     this.player.update();
-    this.generator.advanceIfNeeded(Math.floor(this.player.body.center.x / TILE_SIZE));
+    const char = this.player.character;
+    this.level.update(char);
 
-    // Step-up: when walking on elevated terrain toward a higher surface, apply
-    // a vertical velocity so the player rides the slope smoothly.
-    // Step-down is intentionally omitted — gravity handles descending naturally,
-    // and teleporting the player downward conflicts with it causing jitter.
-    if (this.player.body.onFloor() && this.player.body.velocity.x !== 0 && !this.player.droppingThrough) {
-      const currentCol     = Math.floor(this.player.body.center.x / TILE_SIZE);
-      const currentTerrain = this.terrainHeight.get(currentCol);
-      const onElevated     = currentTerrain < GROUND_ROW && this.player.body.bottom <= currentTerrain * TILE_SIZE + 4;
+    // Step-up: smoothly ride elevated terrain when walking into a higher surface
+    if (char.body.onFloor() && char.body.velocity.x !== 0 && !char.droppingThrough) {
+      const currentCol     = Math.floor(char.body.center.x / TILE_SIZE);
+      const currentTerrain = this.level.terrainHeight.get(currentCol);
+      const onElevated     = currentTerrain < this.level.groundRow && char.body.bottom <= currentTerrain * TILE_SIZE + 4;
 
       if (onElevated) {
-        const dir    = this.player.body.velocity.x > 0 ? 1 : -1;
-        const checkX = dir > 0 ? this.player.body.right + 2 : this.player.body.left - 2;
+        const dir    = char.body.velocity.x > 0 ? 1 : -1;
+        const checkX = dir > 0 ? char.body.right + 2 : char.body.left - 2;
         const nextCol  = Math.floor(checkX / TILE_SIZE);
-        const targetY  = this.terrainHeight.get(nextCol) * TILE_SIZE;
-        const diff     = targetY - this.player.body.bottom;
+        const targetY  = this.level.terrainHeight.get(nextCol) * TILE_SIZE;
+        const diff     = targetY - char.body.bottom;
 
-        // Only step up (diff < 0 = next surface is above current feet), max 1 tile.
-        // Position assignment is intentional: one-way tiles don't block upward
-        // movement, so a velocity-based push would send the player through them.
         if (diff < 0 && Math.abs(diff) <= TILE_SIZE) {
-          this.player.body.position.y = targetY - this.player.body.height;
-          this.player.body.velocity.y = 0;
+          char.body.position.y = targetY - char.body.height;
+          char.body.velocity.y = 0;
         }
       }
     }
-
-    const camX = this.cameras.main.scrollX;
-    this.bgMountains.tilePositionX = camX * PARALLAX_MOUNTAINS;
-    this.bgGraveyard.tilePositionX = camX * PARALLAX_GRAVEYARD;
   }
 }

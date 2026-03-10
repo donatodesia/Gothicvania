@@ -1,0 +1,464 @@
+{
+  "archer": {
+    "cellH": 52,
+    "anims": {
+      "idle": {
+        "frames": 8,
+        "cellW": 46,
+        "cellH": 52
+      },
+      "run": {
+        "frames": 8,
+        "cellW": 74,
+        "cellH": 52
+      },
+      "jump": {
+        "frames": 6,
+        "cellW": 54,
+        "cellH": 52
+      },
+      "fall": {
+        "frames": 6,
+        "cellW": 57,
+        "cellH": 52
+      },
+      "attack": {
+        "frames": 10,
+        "cellW": 164,
+        "cellH": 52
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 48,
+        "cellH": 52
+      }
+    },
+    "cellW": 46,
+    "body": {
+      "w": 14,
+      "h": 33,
+      "offX": 17,
+      "offY": 19
+    }
+  },
+  "barbarian": {
+    "cellH": 52,
+    "anims": {
+      "idle": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 52
+      },
+      "run": {
+        "frames": 8,
+        "cellW": 70,
+        "cellH": 52
+      },
+      "jump": {
+        "frames": 8,
+        "cellW": 161,
+        "cellH": 52
+      },
+      "fall": {
+        "frames": 8,
+        "cellW": 94,
+        "cellH": 52
+      },
+      "attack": {
+        "frames": 12,
+        "cellW": 90,
+        "cellH": 52
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 52
+      }
+    },
+    "cellW": 60,
+    "body": {
+      "w": 22,
+      "h": 32,
+      "offX": 18,
+      "offY": 20
+    }
+  },
+  "knight": {
+    "cellH": 52,
+    "anims": {
+      "idle": {
+        "frames": 15,
+        "cellW": 54,
+        "cellH": 52
+      },
+      "run": {
+        "frames": 12,
+        "cellW": 96,
+        "cellH": 52
+      },
+      "jump": {
+        "frames": 5,
+        "cellW": 61,
+        "cellH": 52
+      },
+      "fall": {
+        "frames": 7,
+        "cellW": 57,
+        "cellH": 52
+      },
+      "attack": {
+        "frames": 11,
+        "cellW": 87,
+        "cellH": 52
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 216,
+        "cellH": 52
+      }
+    },
+    "cellW": 54,
+    "body": {
+      "w": 18,
+      "h": 33,
+      "offX": 16,
+      "offY": 19
+    }
+  },
+  "king": {
+    "cellH": 60,
+    "anims": {
+      "idle": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "run": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "jump": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "fall": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "attack": {
+        "frames": 12,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      }
+    },
+    "cellW": 60,
+    "body": {
+      "w": 10,
+      "h": 20,
+      "offX": 24,
+      "offY": 16
+    }
+  },
+  "necromancer": {
+    "cellH": 60,
+    "anims": {
+      "idle": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "run": {
+        "frames": 10,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "jump": {
+        "frames": 6,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "fall": {
+        "frames": 6,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "attack": {
+        "frames": 12,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      }
+    },
+    "cellW": 60,
+    "body": {
+      "w": 10,
+      "h": 24,
+      "offX": 27,
+      "offY": 17
+    }
+  },
+  "paladin": {
+    "cellH": 60,
+    "anims": {
+      "idle": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "run": {
+        "frames": 10,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "jump": {
+        "frames": 6,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "fall": {
+        "frames": 7,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "attack": {
+        "frames": 12,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      }
+    },
+    "cellW": 60,
+    "body": {
+      "w": 11,
+      "h": 20,
+      "offX": 23,
+      "offY": 11
+    }
+  },
+  "goblin": {
+    "cellH": 60,
+    "anims": {
+      "idle": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "run": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "jump": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "fall": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "attack": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      }
+    },
+    "cellW": 60,
+    "body": {
+      "w": 10,
+      "h": 20,
+      "offX": 24,
+      "offY": 21
+    }
+  },
+  "skeleton": {
+    "cellH": 60,
+    "anims": {
+      "idle": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "run": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "jump": {
+        "frames": 2,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "fall": {
+        "frames": 2,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "attack": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      }
+    },
+    "cellW": 60,
+    "body": {
+      "w": 10,
+      "h": 20,
+      "offX": 27,
+      "offY": 21
+    }
+  },
+  "mushroom": {
+    "cellH": 60,
+    "anims": {
+      "idle": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "run": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "jump": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "fall": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "attack": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      }
+    },
+    "cellW": 60,
+    "body": {
+      "w": 10,
+      "h": 20,
+      "offX": 24,
+      "offY": 21
+    }
+  },
+  "flyingeye": {
+    "cellH": 60,
+    "anims": {
+      "idle": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "run": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "jump": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "fall": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "attack": {
+        "frames": 8,
+        "cellW": 60,
+        "cellH": 60
+      },
+      "hurt": {
+        "frames": 4,
+        "cellW": 60,
+        "cellH": 60
+      }
+    },
+    "cellW": 60,
+    "body": {
+      "w": 10,
+      "h": 20,
+      "offX": 25,
+      "offY": 17
+    }
+  },
+  "rat": {
+    "cellH": 24,
+    "anims": {
+      "idle": {
+        "frames": 6,
+        "cellW": 24,
+        "cellH": 24
+      },
+      "run": {
+        "frames": 6,
+        "cellW": 24,
+        "cellH": 24
+      },
+      "jump": {
+        "frames": 3,
+        "cellW": 24,
+        "cellH": 24
+      },
+      "fall": {
+        "frames": 3,
+        "cellW": 24,
+        "cellH": 24
+      },
+      "attack": {
+        "frames": 6,
+        "cellW": 24,
+        "cellH": 24
+      },
+      "hurt": {
+        "frames": 1,
+        "cellW": 24,
+        "cellH": 24
+      }
+    },
+    "cellW": 24,
+    "body": {
+      "w": 10,
+      "h": 20,
+      "offX": 7,
+      "offY": 4
+    }
+  }
+}

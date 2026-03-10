@@ -4,43 +4,33 @@
  * Generates slopes and background props in fixed-width column chunks as the
  * player advances, instead of populating the entire map at scene start.
  *
+ * ── CONSTRUCTOR ──────────────────────────────────────────────────────────────
+ *
+ *   new ChunkGenerator(scene, layers, tileConfig, chunkSize?, lookahead?)
+ *
+ *   layers:     { mainLayer, collisionLayer, backLayer, terrainHeight, mapCols }
+ *   tileConfig: { groundRow, capRow, flatCap, flat, asc, desc, backPool, frontPool }
+ *
+ *   chunkSize  (default CHUNK_SIZE)      — columns generated per advance
+ *   lookahead  (default CHUNK_LOOKAHEAD) — cols ahead of player that trigger next chunk
+ *
  * ── HOW TO INTEGRATE ────────────────────────────────────────────────────────
  *
- * 1. Import at the top of GameScene.js:
- *      import ChunkGenerator from '../utils/ChunkGenerator.js';
+ *   In Level.create(), after tilemap + terrainHeight setup:
  *
- * 2. In GameScene.create(), AFTER tilemap + terrainHeight setup,
- *    INSTEAD OF calling generateSlopes / generateBackgroundSlopes / generateBackground:
+ *     this.generator = new ChunkGenerator(scene, {
+ *       mainLayer, collisionLayer, backLayer, terrainHeight, mapCols,
+ *     }, {
+ *       groundRow, capRow, flatCap, flat, asc, desc, backPool, frontPool,
+ *     });
+ *     this.generator.bootstrap();
  *
- *      this.chunkGen = new ChunkGenerator(this, {
- *        mainLayer:      this.mainLayer,
- *        collisionLayer: this.collisionLayer,
- *        backLayer:      this.backLayer,
- *        terrainHeight:  this.terrainHeight,
- *        mapCols:        this.mapCols,
- *      });
- *      this.chunkGen.bootstrap(); // fills the first chunk immediately
- *
- * 3. In GameScene.update(), add one line:
- *      const playerCol = Math.floor(this.player.body.center.x / TILE_SIZE);
- *      this.chunkGen.advanceIfNeeded(playerCol);
- *
- * ── CONSTRUCTOR OPTIONS ─────────────────────────────────────────────────────
- *   chunkSize  (default CHUNK_SIZE)      — columns generated per advance
- *   lookahead  (default CHUNK_LOOKAHEAD) — cols ahead of player that trigger the next chunk
+ *   The Level base class calls advanceIfNeeded() each frame automatically.
  */
 import {
   TILE_SIZE,
-  GROUND_ROW,
   TILE_SOLID,
   TILE_ONE_WAY,
-  ASC,
-  DESC,
-  FLAT,
-  FLAT_CAP,
-  BACK_POOL,
-  FRONT_POOL,
-  GROUND_Y,
   DEPTH,
   CHUNK_SIZE,
   CHUNK_LOOKAHEAD,
@@ -51,19 +41,31 @@ import {
 export default class ChunkGenerator {
   /**
    * @param {Phaser.Scene} scene
-   * @param {{ mainLayer, collisionLayer, backLayer, terrainHeight, mapCols }} opts
+   * @param {{ mainLayer, collisionLayer, backLayer, terrainHeight, mapCols }} layers
+   * @param {{ groundRow, capRow, flatCap, flat, asc, desc, backPool, frontPool }} tileConfig
    * @param {number} [chunkSize]
    * @param {number} [lookahead]
    */
-  constructor(scene, { mainLayer, collisionLayer, backLayer, terrainHeight, mapCols }, chunkSize = CHUNK_SIZE, lookahead = CHUNK_LOOKAHEAD) {
+  constructor(scene, layers, tileConfig, chunkSize = CHUNK_SIZE, lookahead = CHUNK_LOOKAHEAD) {
     this.scene          = scene;
-    this.mainLayer      = mainLayer;
-    this.collisionLayer = collisionLayer;
-    this.backLayer      = backLayer;
-    this.terrainHeight  = terrainHeight;
-    this.mapCols        = mapCols;
+    this.mainLayer      = layers.mainLayer;
+    this.collisionLayer = layers.collisionLayer;
+    this.backLayer      = layers.backLayer;
+    this.terrainHeight  = layers.terrainHeight;
+    this.mapCols        = layers.mapCols;
     this.chunkSize      = chunkSize;
     this.lookahead      = lookahead;
+
+    // Tile config — all level-specific values live here
+    this.groundRow = tileConfig.groundRow;
+    this.capRow    = tileConfig.capRow;
+    this.flatCap   = tileConfig.flatCap;
+    this.flat      = tileConfig.flat;
+    this.asc       = tileConfig.asc;
+    this.desc      = tileConfig.desc;
+    this.backPool  = tileConfig.backPool;
+    this.frontPool = tileConfig.frontPool;
+    this.groundY   = tileConfig.capRow * TILE_SIZE;
 
     // Generation frontier
     this.generatedUpTo = 0;
@@ -108,11 +110,14 @@ export default class ChunkGenerator {
   _fillBaseGround(fromCol, toCol) {
     for (let c = fromCol; c < toCol; c++) {
       const ci = c % 4;
-      this.mainLayer.putTileAt(FLAT_CAP[ci], c, 11);
-      this.mainLayer.putTileAt(FLAT[0][ci],  c, 12);
-      this.mainLayer.putTileAt(FLAT[1][ci],  c, 13);
-      this.collisionLayer.putTileAt(TILE_SOLID, c, 12).setCollision(true, true, true, true);
-      this.collisionLayer.putTileAt(TILE_SOLID, c, 13).setCollision(true, true, true, true);
+      this.mainLayer.putTileAt(this.flatCap[ci], c, this.capRow);
+      for (let i = 0; i < this.flat.length; i++) {
+        this.mainLayer.putTileAt(this.flat[i][ci], c, this.groundRow + i);
+      }
+      this.collisionLayer.putTileAt(TILE_SOLID, c, this.groundRow).setCollision(true, true, true, true);
+      if (this.flat.length > 1) {
+        this.collisionLayer.putTileAt(TILE_SOLID, c, this.groundRow + 1).setCollision(true, true, true, true);
+      }
     }
   }
 
@@ -172,17 +177,17 @@ export default class ChunkGenerator {
     const toX = toCol * TILE_SIZE;
 
     while (this.nextBackPropX < toX) {
-      const key = BACK_POOL[Phaser.Math.Between(0, BACK_POOL.length - 1)];
+      const key = this.backPool[Phaser.Math.Between(0, this.backPool.length - 1)];
       const w   = this.scene.textures.getFrame(key).realWidth;
-      this.scene.add.image(this.nextBackPropX + w / 2, GROUND_Y + 20, key)
+      this.scene.add.image(this.nextBackPropX + w / 2, this.groundY + 20, key)
         .setOrigin(0.5, 1).setDepth(DEPTH.PROPS_BACK);
       this.nextBackPropX += w + Phaser.Math.Between(20, 80);
     }
 
     while (this.nextFrontPropX < toX) {
-      const key = FRONT_POOL[Phaser.Math.Between(0, FRONT_POOL.length - 1)];
+      const key = this.frontPool[Phaser.Math.Between(0, this.frontPool.length - 1)];
       const w   = this.scene.textures.getFrame(key).realWidth;
-      this.scene.add.image(this.nextFrontPropX + w / 2, GROUND_Y + 35, key)
+      this.scene.add.image(this.nextFrontPropX + w / 2, this.groundY + 35, key)
         .setOrigin(0.5, 1).setDepth(DEPTH.PROPS_FRONT);
       this.nextFrontPropX += w + Phaser.Math.Between(20, 80);
     }
@@ -194,7 +199,7 @@ export default class ChunkGenerator {
    */
   _placeStep(col, colHeight, type, tileCol) {
     if (col < 0 || col >= this.mapCols) return;
-    const surfaceRow = GROUND_ROW - colHeight;
+    const surfaceRow = this.groundRow - colHeight;
     this._placeVisual(col, colHeight, type, tileCol, this.mainLayer);
     this._placeCollision(col, surfaceRow);
     this._updateHeight(col, surfaceRow);
@@ -203,16 +208,16 @@ export default class ChunkGenerator {
   /** Place visual tiles for one column on the given layer. No physics side-effects. */
   _placeVisual(col, colHeight, type, tileCol, layer) {
     if (col < 0 || col >= this.mapCols) return;
-    const surfaceRow = GROUND_ROW - colHeight;
+    const surfaceRow = this.groundRow - colHeight;
     if (type === 'flat') {
-      layer.putTileAt(FLAT_CAP[tileCol % 4], col, surfaceRow - 1);
-      for (let r = surfaceRow; r < GROUND_ROW; r++) {
-        const idx = Math.min(r - surfaceRow, FLAT.length - 1);
-        layer.putTileAt(FLAT[idx][tileCol % 4], col, r);
+      layer.putTileAt(this.flatCap[tileCol % 4], col, surfaceRow - 1);
+      for (let r = surfaceRow; r < this.groundRow; r++) {
+        const idx = Math.min(r - surfaceRow, this.flat.length - 1);
+        layer.putTileAt(this.flat[idx][tileCol % 4], col, r);
       }
     } else {
-      const tiles = type === 'ascending' ? ASC : DESC;
-      for (let r = surfaceRow; r < GROUND_ROW; r++) {
+      const tiles = type === 'ascending' ? this.asc : this.desc;
+      for (let r = surfaceRow; r < this.groundRow; r++) {
         const idx = Math.min(r - surfaceRow, tiles.length - 1);
         layer.putTileAt(tiles[idx][tileCol % 2], col, r);
       }
@@ -222,8 +227,10 @@ export default class ChunkGenerator {
   /** Place a one-way collision tile at surfaceRow for col. No visual side-effects. */
   _placeCollision(col, surfaceRow) {
     if (col < 0 || col >= this.mapCols) return;
-    if (surfaceRow >= GROUND_ROW) return;
-    const tile = this.collisionLayer.putTileAt(TILE_ONE_WAY, col, surfaceRow);
+    if (surfaceRow >= this.groundRow) return;
+    // recalculateFaces=false: prevents Phaser's CalculateFacesAround from
+    // disabling the faceTop of the solid ground tile directly below.
+    const tile = this.collisionLayer.putTileAt(TILE_ONE_WAY, col, surfaceRow, false);
     tile.setCollision(false, false, true, false);
   }
 

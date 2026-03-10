@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-
-const ASSET_PATH = 'assets/Gothicvania Cemetery/Phaser Demo/assets';
+import CemeteryLevel from '../levels/CemeteryLevel.js';
+import TownLevel from '../levels/TownLevel.js';
 
 export default class BootScene extends Phaser.Scene {
   constructor() {
@@ -8,36 +8,48 @@ export default class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // Atlas
-    this.load.atlas(
-      'atlas',
-      `${ASSET_PATH}/atlas/atlas.png`,
-      `${ASSET_PATH}/atlas/atlas.json`
-    );
+    // Level assets (tilemap data, tilesets, backgrounds, props)
+    CemeteryLevel.preload(this);
+    TownLevel.preload(this);  // dynamic tilemap — no JSON file
 
-    // Tilemap
-    this.load.tilemapTiledJSON('map', `${ASSET_PATH}/maps/map.json`);
+    // --- Character assets ---
 
-    // Tileset images
-    this.load.image('tileset', `${ASSET_PATH}/environment/tileset.png`);
-    this.load.image('objects', `${ASSET_PATH}/environment/objects.png`);
+    // Warrior atlas (Phaser Demo)
+    const ATLAS = 'assets/Gothicvania Cemetery/Phaser Demo/assets/atlas';
+    this.load.atlas('atlas', `${ATLAS}/atlas.png`, `${ATLAS}/atlas.json`);
 
-    // Backgrounds
-    this.load.image('bg-moon', `${ASSET_PATH}/environment/bg-moon.png`);
-    this.load.image('bg-mountains', `${ASSET_PATH}/environment/bg-mountains.png`);
-    this.load.image('bg-graveyard', `${ASSET_PATH}/environment/bg-graveyard.png`);
+    // Vampire spritesheets
+    const VAMP = 'assets/Gothicvania Cemetery/Characters/Vampire';
+    this.load.spritesheet('vampire-idle',   `${VAMP}/vampire-idle.png`,   { frameWidth: 55, frameHeight: 60 });
+    this.load.spritesheet('vampire-walk',   `${VAMP}/vampire-walk.png`,   { frameWidth: 55, frameHeight: 60 });
+    this.load.spritesheet('vampire-run',    `${VAMP}/vampire-run.png`,    { frameWidth: 55, frameHeight: 60 });
+    this.load.spritesheet('vampire-jump',   `${VAMP}/vampire-jump.png`,   { frameWidth: 55, frameHeight: 60 });
+    this.load.spritesheet('vampire-attack', `${VAMP}/vampire-attack.png`, { frameWidth: 55, frameHeight: 60 });
+    this.load.spritesheet('vampire-hurt',   `${VAMP}/vampire-hurt.png`,   { frameWidth: 55, frameHeight: 60 });
 
-    // Procedural background props
-    const PROPS = 'assets/Gothicvania Cemetery/Environment/sliced-objects';
-    this.load.image('tree-1',     `${PROPS}/tree-1.png`);
-    this.load.image('tree-2',     `${PROPS}/tree-2.png`);
-    this.load.image('tree-3',     `${PROPS}/tree-3.png`);
-    this.load.image('statue',     `${PROPS}/statue.png`);
-    this.load.image('bush-large', `${PROPS}/bush-large.png`);
-    this.load.image('stone-1',    `${PROPS}/stone-1.png`);
-    this.load.image('stone-2',    `${PROPS}/stone-2.png`);
-    this.load.image('stone-3',    `${PROPS}/stone-3.png`);
-    this.load.image('stone-4',    `${PROPS}/stone-4.png`);
+    // Characters from unwrapped-assets
+    const CHARS = 'assets/characters';
+    const ANIMS = ['idle', 'run', 'jump', 'fall', 'attack', 'hurt'];
+
+    const uniform60 = ['king', 'necromancer', 'paladin', 'goblin', 'skeleton', 'mushroom', 'flyingeye'];
+    for (const name of uniform60) {
+      for (const anim of ANIMS) {
+        this.load.spritesheet(`${name}-${anim}`, `${CHARS}/${name}/${name}-${anim}.png`, { frameWidth: 60, frameHeight: 60 });
+      }
+    }
+
+    const archerFW    = { idle: 46, run: 74, jump: 54, fall: 57, attack: 164, hurt: 48 };
+    const barbarianFW = { idle: 60, run: 70, jump: 161, fall: 94, attack: 90,  hurt: 60 };
+    const knightFW    = { idle: 54, run: 96, jump: 61, fall: 57, attack: 87,  hurt: 216 };
+    for (const anim of ANIMS) {
+      this.load.spritesheet(`archer-${anim}`,    `${CHARS}/archer/archer-${anim}.png`,       { frameWidth: archerFW[anim],    frameHeight: 52 });
+      this.load.spritesheet(`barbarian-${anim}`, `${CHARS}/barbarian/barbarian-${anim}.png`, { frameWidth: barbarianFW[anim], frameHeight: 52 });
+      this.load.spritesheet(`knight-${anim}`,    `${CHARS}/knight/knight-${anim}.png`,       { frameWidth: knightFW[anim],    frameHeight: 52 });
+    }
+
+    for (const anim of ANIMS) {
+      this.load.spritesheet(`rat-${anim}`, `${CHARS}/rat/rat-${anim}.png`, { frameWidth: 24, frameHeight: 24 });
+    }
   }
 
   create() {
