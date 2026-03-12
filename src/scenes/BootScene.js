@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import CemeteryLevel from '../levels/CemeteryLevel.js';
 import TownLevel from '../levels/TownLevel.js';
+import CathedralLevel from '../levels/CathedralLevel.js';
+import MagicCliffsLevel from '../levels/MagicCliffsLevel.js';
 
 export default class BootScene extends Phaser.Scene {
   constructor() {
@@ -11,6 +13,8 @@ export default class BootScene extends Phaser.Scene {
     // Level assets (tilemap data, tilesets, backgrounds, props)
     CemeteryLevel.preload(this);
     TownLevel.preload(this);  // dynamic tilemap — no JSON file
+    CathedralLevel.preload(this);
+    MagicCliffsLevel.preload(this);
 
     // --- Character assets ---
 
@@ -40,7 +44,7 @@ export default class BootScene extends Phaser.Scene {
 
     const archerFW    = { idle: 46, run: 74, jump: 54, fall: 57, attack: 164, hurt: 48 };
     const barbarianFW = { idle: 60, run: 70, jump: 161, fall: 94, attack: 90,  hurt: 60 };
-    const knightFW    = { idle: 54, run: 96, jump: 61, fall: 57, attack: 87,  hurt: 216 };
+    const knightFW    = { idle: 54, run: 144, jump: 61, fall: 57, attack: 87,  hurt: 216 };
     for (const anim of ANIMS) {
       this.load.spritesheet(`archer-${anim}`,    `${CHARS}/archer/archer-${anim}.png`,       { frameWidth: archerFW[anim],    frameHeight: 52 });
       this.load.spritesheet(`barbarian-${anim}`, `${CHARS}/barbarian/barbarian-${anim}.png`, { frameWidth: barbarianFW[anim], frameHeight: 52 });
@@ -50,6 +54,15 @@ export default class BootScene extends Phaser.Scene {
     for (const anim of ANIMS) {
       this.load.spritesheet(`rat-${anim}`, `${CHARS}/rat/rat-${anim}.png`, { frameWidth: 24, frameHeight: 24 });
     }
+
+    // Heroine (Magic Cliffs)
+    const HEROINE = 'assets/Magic Cliffs/Player Sprite/spritesheets';
+    for (const anim of ANIMS) {
+      this.load.spritesheet(`heroine-${anim}`, `${HEROINE}/${anim}.png`, { frameWidth: 128, frameHeight: 96 });
+    }
+    this.load.spritesheet('heroine-crouch',        `${HEROINE}/crouch.png`,        { frameWidth: 128, frameHeight: 96 });
+    this.load.spritesheet('heroine-crouch-attack', `${HEROINE}/crouch-attack.png`, { frameWidth: 128, frameHeight: 96 });
+    this.load.spritesheet('heroine-jump-attack',   `${HEROINE}/jump-attack.png`,   { frameWidth: 128, frameHeight: 96 });
   }
 
   create() {

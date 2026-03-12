@@ -9,7 +9,7 @@ export default class Warrior extends Character {
       bodyW:        22,
       bodyH:        39,
       bodyOffsetX:  41,
-      bodyOffsetY:  19,
+      bodyOffsetY:  23,
     });
 
     this.createAnimations(scene);

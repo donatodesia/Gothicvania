@@ -1,0 +1,165 @@
+{
+  "backgroundcolor": "#0a0a2a",
+  "height": 14,
+  "infinite": false,
+  "layers": [
+    {
+      "name": "Sky_Background",
+      "type": "imagelayer",
+      "image": "Background_0.png",
+      "opacity": 1,
+      "visible": true,
+      "offsetx": 0,
+      "offsety": 0,
+      "properties": [
+        {
+          "name": "scrollFactorX",
+          "type": "float",
+          "value": 0.1
+        }
+      ]
+    },
+    {
+      "name": "Forest_Background",
+      "type": "imagelayer",
+      "image": "Background_1.png",
+      "opacity": 1,
+      "visible": true,
+      "offsetx": 0,
+      "offsety": 0,
+      "properties": [
+        {
+          "name": "scrollFactorX",
+          "type": "float",
+          "value": 0.4
+        }
+      ]
+    },
+    {
+      "name": "Midground_Grass",
+      "type": "tilelayer",
+      "opacity": 1,
+      "visible": true,
+      "width": 20,
+      "height": 14,
+      "x": 0,
+      "y": 0,
+      "data": [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      ]
+    },
+    {
+      "name": "Ground_Tiles",
+      "type": "tilelayer",
+      "opacity": 1,
+      "visible": true,
+      "width": 20,
+      "height": 14,
+      "x": 0,
+      "y": 0,
+      "data": [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+      ]
+    },
+    {
+      "name": "Decorations",
+      "type": "objectgroup",
+      "objects": [
+        {
+          "name": "Salt_Crystal",
+          "gid": 7,
+          "x": 100,
+          "y": 352,
+          "width": 32,
+          "height": 32
+        },
+        {
+          "name": "Bush_1",
+          "gid": 8,
+          "x": 300,
+          "y": 352,
+          "width": 32,
+          "height": 32
+        }
+      ]
+    }
+  ],
+  "renderorder": "right-down",
+  "tileheight": 32,
+  "tilewidth": 32,
+  "tilesets": [
+    {
+      "firstgid": 1,
+      "name": "Ground",
+      "image": "Tiles.png",
+      "imagewidth": 352,
+      "imageheight": 384,
+      "tilewidth": 32,
+      "tileheight": 32
+    },
+    {
+      "firstgid": 5,
+      "name": "Grass_Back_1",
+      "image": "Grass_background_1.png",
+      "imagewidth": 352,
+      "imageheight": 416,
+      "tilewidth": 32,
+      "tileheight": 32
+    },
+    {
+      "firstgid": 6,
+      "name": "Grass_Back_2",
+      "image": "Grass_background_2.png",
+      "imagewidth": 352,
+      "imageheight": 416,
+      "tilewidth": 32,
+      "tileheight": 32
+    },
+    {
+      "firstgid": 7,
+      "name": "Salt",
+      "image": "Salt.png",
+      "imagewidth": 112,
+      "imageheight": 224,
+      "tilewidth": 32,
+      "tileheight": 32
+    },
+    {
+      "firstgid": 8,
+      "name": "Brush",
+      "image": "brush.png",
+      "imagewidth": 224,
+      "imageheight": 192,
+      "tilewidth": 32,
+      "tileheight": 32
+    }
+  ],
+  "version": "1.10",
+  "width": 20
+}

@@ -12,14 +12,21 @@ import Skeleton from '../entities/Skeleton.js';
 import Mushroom from '../entities/Mushroom.js';
 import FlyingEye from '../entities/FlyingEye.js';
 import Rat from '../entities/Rat.js';
+import Ghost from '../entities/Ghost.js';
+import HellGato from '../entities/HellGato.js';
+import Heroine from '../entities/Heroine.js';
 import Player from '../entities/Player.js';
 import CemeteryLevel from '../levels/CemeteryLevel.js';
 import TownLevel from '../levels/TownLevel.js';
+import CathedralLevel from '../levels/CathedralLevel.js';
+import MagicCliffsLevel from '../levels/MagicCliffsLevel.js';
 import { TILE_SIZE, TILE_SOLID, DEPTH } from '../constants.js';
 
 const LEVELS = {
-  cemetery: CemeteryLevel,
-  town:     TownLevel,
+  cemetery:     CemeteryLevel,
+  town:         TownLevel,
+  cathedral:    CathedralLevel,
+  'magic-cliffs': MagicCliffsLevel,
 };
 
 export default class GameScene extends Phaser.Scene {
@@ -42,6 +49,7 @@ export default class GameScene extends Phaser.Scene {
     const CharClasses = [
       Warrior, Vampire, Archer, Barbarian, Knight, King,
       Necromancer, Paladin, Goblin, Skeleton, Mushroom, FlyingEye, Rat,
+      Ghost, HellGato, Heroine,
     ];
 
     this.characters = [];

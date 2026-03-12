@@ -9,8 +9,10 @@ const TABS = [
 
 // Add new levels here as they are implemented
 const LEVELS = [
-  { key: 'cemetery', label: 'Cemetery' },
-  { key: 'town',     label: 'Town'     },
+  { key: 'cemetery',     label: 'Cemetery'     },
+  { key: 'town',         label: 'Town'         },
+  { key: 'cathedral',    label: 'Cathedral'    },
+  { key: 'magic-cliffs', label: 'Magic Cliffs' },
 ];
 
 export default class PauseScene extends Phaser.Scene {
